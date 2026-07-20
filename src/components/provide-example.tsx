@@ -29,7 +29,7 @@ export class ProvideExample implements ComponentInterface {
     @Provide(logger)
     // @ts-ignore
     private readonly _logger: Logger = new Logger();
-    
+
     public render(): any {
         return (
             <Host>

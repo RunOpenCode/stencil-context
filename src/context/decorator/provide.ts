@@ -4,9 +4,6 @@ import {
     getElement,
 }                          from '@stencil/core';
 import { ContextProvider } from '../controllers/context-provider';
-import { initialize }      from './initializer';
-
-initialize();
 
 /**
  * A property decorator that adds a ContextProvider controller to the component
@@ -39,12 +36,12 @@ export function Provide<ValueType>(context: Context<unknown, ValueType>): Provid
 
         cmp.connectedCallback = function (): void {
             if (connectedCallback) {
-                connectedCallback();
+                connectedCallback.call(this);
             }
 
             if (!provider.has(this)) {
                 provider.set(this, new ContextProvider(getElement(this), {
-                    context:      context,
+                    context:      context as Context<unknown, ValueType>,
                     initialValue: this[property],
                 }));
             }
@@ -54,7 +51,7 @@ export function Provide<ValueType>(context: Context<unknown, ValueType>): Provid
 
         cmp.disconnectedCallback = function (): void {
             if (disconnectedCallback) {
-                disconnectedCallback();
+                disconnectedCallback.call(this);
             }
 
             provider.get(this)?.hostDisconnected();

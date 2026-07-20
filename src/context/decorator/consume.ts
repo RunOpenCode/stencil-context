@@ -4,9 +4,6 @@ import {
 }                          from '@stencil/core';
 import { ContextConsumer } from '../controllers/context-consumer';
 import { Context }         from '@lit/context';
-import { initialize }      from './initializer';
-
-initialize();
 
 /**
  * A property decorator that adds a ContextConsumer controller to the component
@@ -44,12 +41,12 @@ export function Consume<ValueType>(context: Context<unknown, ValueType>, subscri
 
         cmp.connectedCallback = function (): void {
             if (connectedCallback) {
-                connectedCallback();
+                connectedCallback.call(this);
             }
 
             if (!consumer.has(this)) {
                 consumer.set(this, new ContextConsumer(getElement(this), {
-                    context:   context,
+                    context:   context as Context<unknown, ValueType>,
                     callback:  (value: ValueType): void => {
                         this[property] = value;
                     },
@@ -62,7 +59,7 @@ export function Consume<ValueType>(context: Context<unknown, ValueType>, subscri
 
         cmp.disconnectedCallback = function (): void {
             if (disconnectedCallback) {
-                disconnectedCallback();
+                disconnectedCallback.call(this);
             }
 
             consumer.get(this)?.hostDisconnected();

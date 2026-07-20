@@ -6,56 +6,52 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
-    interface MyComponent {
-        /**
-          * The first name
-         */
-        "first": string;
-        /**
-          * The last name
-         */
-        "last": string;
-        /**
-          * The middle name
-         */
-        "middle": string;
+    interface ConsumeExample {
+    }
+    interface ProvideExample {
+        "section": string;
     }
 }
 declare global {
-    interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {
+    interface HTMLConsumeExampleElement extends Components.ConsumeExample, HTMLStencilElement {
     }
-    var HTMLMyComponentElement: {
-        prototype: HTMLMyComponentElement;
-        new (): HTMLMyComponentElement;
+    var HTMLConsumeExampleElement: {
+        prototype: HTMLConsumeExampleElement;
+        new (): HTMLConsumeExampleElement;
+    };
+    interface HTMLProvideExampleElement extends Components.ProvideExample, HTMLStencilElement {
+    }
+    var HTMLProvideExampleElement: {
+        prototype: HTMLProvideExampleElement;
+        new (): HTMLProvideExampleElement;
     };
     interface HTMLElementTagNameMap {
-        "my-component": HTMLMyComponentElement;
+        "consume-example": HTMLConsumeExampleElement;
+        "provide-example": HTMLProvideExampleElement;
     }
 }
 declare namespace LocalJSX {
-    interface MyComponent {
-        /**
-          * The first name
-         */
-        "first"?: string;
-        /**
-          * The last name
-         */
-        "last"?: string;
-        /**
-          * The middle name
-         */
-        "middle"?: string;
+    interface ConsumeExample {
     }
+    interface ProvideExample {
+        "section"?: string;
+    }
+
+    interface ProvideExampleAttributes {
+        "section": string;
+    }
+
     interface IntrinsicElements {
-        "my-component": MyComponent;
+        "consume-example": ConsumeExample;
+        "provide-example": Omit<ProvideExample, keyof ProvideExampleAttributes> & { [K in keyof ProvideExample & keyof ProvideExampleAttributes]?: ProvideExample[K] } & { [K in keyof ProvideExample & keyof ProvideExampleAttributes as `attr:${K}`]?: ProvideExampleAttributes[K] } & { [K in keyof ProvideExample & keyof ProvideExampleAttributes as `prop:${K}`]?: ProvideExample[K] };
     }
 }
 export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
-            "my-component": LocalJSX.MyComponent & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
+            "consume-example": LocalJSX.IntrinsicElements["consume-example"] & JSXBase.HTMLAttributes<HTMLConsumeExampleElement>;
+            "provide-example": LocalJSX.IntrinsicElements["provide-example"] & JSXBase.HTMLAttributes<HTMLProvideExampleElement>;
         }
     }
 }

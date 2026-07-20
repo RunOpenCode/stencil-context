@@ -9,6 +9,24 @@
     <script nomodule src="/build/stencil-context.js"></script>
   </head>
   <body>
-    <my-component first="Stencil" last="'Don't call me a framework' JS"></my-component>
+      <provide-example section="Foo">
+          <div>
+              <consume-example></consume-example>
+
+              <provide-example section="Bar">
+                  <div>
+                      <consume-example>
+
+                          <provide-example section="Baz">
+                              <div>
+                                  <consume-example></consume-example>
+                              </div>
+                          </provide-example>
+                          
+                      </consume-example>
+                  </div>
+              </provide-example>
+          </div>
+      </provide-example>
   </body>
 </html>

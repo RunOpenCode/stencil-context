@@ -10,13 +10,37 @@ portions of codes are copied and modified to work with Stencil, or reused as is.
 License from the Lit context protocol is included in this repository, make sure it is compliant with your project
 license (see original [LICENSE](https://github.com/lit/lit/blob/main/packages/context/LICENSE)).
 
-## Installation:
+## Installation
 
 ```bash
 npm install @stencil/context-protocol
 ```
 
-## Usage:
+## Initialization
+
+Due to the way Stencil works, you need to initialize the context protocol before using it. Order of the initialization
+of the Stencil components is from bottom to top, so providers are initialized after consumers, which is not what we
+want. To fix this, you need to invoke `initializeContext()` function.
+
+This invocation must be done once, prior to the initialization of any Stencil component.
+
+There are various methods to do this, the easiest one is to
+use [global script](https://stenciljs.com/docs/config#globalscript) in Stencil configuration. Basically, you will create
+a global script file, and in that file you will invoke `initializeContext()` function. When you import your components
+in your application, the global script will be executed first, and context protocol will be initialized.
+
+Initialization script will expose `provideContext()` and `createContext()` functions globally, however, you may disable
+this behavior by passing `false` to the `initializeContext()` function.
+
+Example:
+
+```ts
+import { initializeContext } from '@runopencode/stencil-context';
+
+initializeContext();
+```
+
+## Usage
 
 It is assumed that you have a basic understanding of Stencil and how to create components, and you have understood the
 context protocol. Concept is same as in Lit, React, Vue, etc. You can provide a context value in a parent component and
@@ -39,27 +63,29 @@ or `@Prop()` decorator, the component will re-render when the context value chan
 ## Global providers
 
 You can provide a context value globally, so that all components in the application can consume it. To do this, you may
-utilize `provideContext(context, value, element = null)` function. If you don't provide element, the context value will 
+utilize `provideContext(context, value, element = null)` function. If you don't provide element, the context value will
 be provided from `body` element.
 
 General idea is to avoid slot flickering when rendering provider components, especially when its being used in server
-side rendered applications. 
+side rendered applications.
 
 Example:
 
 ```html
 <!DOCTYPE html>
-<html dir="ltr" lang="en">
-  <head>
-    <script type="module" src="/build/stencil.esm.js"></script>
-    <script nomodule src="/build/stencil.js"></script>
-   
-  </head>
-  <body>
-  <script type="module">
-      provideContext('logger', { log: (value) => console.log(`[LOG] ${value}`)  });
-  </script>
-  </body>
+<html dir='ltr' lang='en'>
+<head>
+    <script type="module">
+        import {defineCustomElements} from '/my-components/loader/index.js';
+
+        defineCustomElements();
+    </script>
+</head>
+<body>
+<script type='module'>
+    provideContext('logger', { log: (value) => console.log(`[LOG] ${value}`) });
+</script>
+</body>
 </html>
 ```
 

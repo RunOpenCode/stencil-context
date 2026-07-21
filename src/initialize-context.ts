@@ -15,13 +15,17 @@ let root: ContextRoot | null = null;
  * Exposes `provideContext` and `createContext` functions to be
  * globally accessible.
  */
-export default function (): void {
+export default function initializeContext(expose: boolean = true): void {
     if (null !== root) {
         return;
     }
 
     root = new ContextRoot();
     root.attach(document.body);
+
+    if (!expose) {
+        return;
+    }
 
     (globalThis as any).provideContext = provideContext;
     (globalThis as any).createContext  = createContext;

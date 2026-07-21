@@ -18,8 +18,5 @@ export const config: Config = {
             serviceWorker: null, // disable service workers
         },
     ],
-    globalScript: 'src/global.ts',
-    testing:       {
-        browserHeadless: 'new',
-    },
+    globalScript:  'src/initialize.ts',
 };

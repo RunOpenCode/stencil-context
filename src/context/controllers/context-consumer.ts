@@ -5,13 +5,13 @@ import {
     ContextType,
 } from '@lit/context';
 
+export type ContextConsumerCallbackFn<C extends Context<unknown, unknown>> = (value: ContextType<C>, dispose?: () => void) => void;
+
 export interface ContextConsumerOptions<C extends Context<unknown, unknown>> {
     context: C;
-    callback?: (value: ContextType<C>, dispose?: () => void) => void;
+    callback?: ContextConsumerCallbackFn<C>;
     subscribe?: boolean;
 }
-
-export type CallbackFn<C extends Context<unknown, unknown>> = (value: ContextType<C>, dispose?: () => void) => void;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ export class ContextConsumer<C extends Context<unknown, unknown>> {
 
     private readonly _context: C;
 
-    private readonly _callback: CallbackFn<C> | null;
+    private readonly _callback: ContextConsumerCallbackFn<C> | null;
 
     private readonly _subscribe: boolean = false;
 
@@ -81,17 +81,17 @@ export class ContextConsumer<C extends Context<unknown, unknown>> {
                 this._provided = false;
                 this._unsubscribe();
             }
-            
+
             if (!this._subscribe) {
                 this._unsubscribe();
             }
         }
-        
+
         this.value = value;
-        
+
         if (!this._provided || this._subscribe) {
             this._provided = true;
-            
+
             if (this._callback) {
                 this._callback(value, unsubscribe);
             }

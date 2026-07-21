@@ -11,11 +11,7 @@ interface CallbackInfo {
  * @see https://github.com/lit/lit/blob/main/packages/context/src/lib/value-notifier.ts
  */
 export class ValueNotifier<T> {
-    protected readonly subscriptions = new Map<
-        ContextCallback<T>,
-        CallbackInfo
-    >();
-    private _value!: T;
+
     get value(): T {
         return this._value;
     }
@@ -24,49 +20,56 @@ export class ValueNotifier<T> {
         this.setValue(v);
     }
 
-    setValue(v: T, force = false) {
-        const update = force || !Object.is(v, this._value);
-        this._value  = v;
-        if (update) {
-            this.updateObservers();
-        }
-    }
+    protected readonly subscriptions = new Map<
+        ContextCallback<T>,
+        CallbackInfo
+    >();
 
-    constructor(defaultValue?: T) {
+    private _value!: T;
+
+    public constructor(defaultValue?: T) {
         if (defaultValue !== undefined) {
             this.value = defaultValue;
         }
     }
 
-    updateObservers = (): void => {
-        for (const [callback, {disposer}] of this.subscriptions) {
-            callback(this._value, disposer);
-        }
-    };
+    public setValue(v: T, force = false): void {
+        let update: boolean = force || !Object.is(v, this._value);
 
-    addCallback(
-        callback: ContextCallback<T>,
-        consumerHost: Element,
-        subscribe?: boolean,
-    ): void {
+        this._value = v;
+
+        if (update) {
+            this._updateObservers();
+        }
+    }
+
+    public clearCallbacks(): void {
+        this.subscriptions.clear();
+    }
+
+    protected addCallback(callback: ContextCallback<T>, consumerHost: Element, subscribe?: boolean): void {
         if (!subscribe) {
-            // just call the callback once and we're done
             callback(this.value);
             return;
         }
+
         if (!this.subscriptions.has(callback)) {
             this.subscriptions.set(callback, {
-                disposer: () => {
+                disposer: (): void => {
                     this.subscriptions.delete(callback);
                 },
                 consumerHost,
             });
         }
-        const {disposer} = this.subscriptions.get(callback)!;
+
+        let {disposer} = this.subscriptions.get(callback)!;
+
         callback(this.value, disposer);
     }
 
-    clearCallbacks(): void {
-        this.subscriptions.clear();
-    }
+    private _updateObservers = (): void => {
+        for (const [callback, {disposer}] of this.subscriptions) {
+            callback(this._value, disposer);
+        }
+    };
 }

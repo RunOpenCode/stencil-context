@@ -1,4 +1,7 @@
-import { Context }         from '@lit/context';
+import {
+    Context,
+    createContext,
+}                          from '@lit/context';
 import { ContextProvider } from './controllers/context-provider';
 
 type ElementProvidersMap = Map<Context<unknown, unknown>, ContextProvider<Context<unknown, unknown>>>;
@@ -6,11 +9,25 @@ type ElementProvidersMap = Map<Context<unknown, unknown>, ContextProvider<Contex
 // Registry of all providers for given HTML element.
 let providers: WeakMap<HTMLElement, ElementProvidersMap> = new WeakMap<HTMLElement, ElementProvidersMap>();
 
-export function provide<ValueType>(
-    context: Context<unknown, ValueType>,
+/**
+ * Provide context to the HTML element.
+ *
+ * Use this function to provide a context value to a specific HTML element. The context value
+ * will be available to any child elements that consume the same context.
+ *
+ * This is useful for providing globally accessible services to all subnodes without
+ * flickering that occurs when rendering slotted content.
+ *
+ * @param {Context|string} context A Context identifier value created via `createContext`, or string as service identifier.
+ * @param {any} value Context value.
+ * @param {HTMLElement|string|null} element The HTML element or selector to provide the context to. If not provided, context will be attached to the `body` element.
+ */
+export function provideContext<ValueType>(
+    context: Context<unknown, ValueType> | string,
     value: ValueType,
     element: HTMLElement | string | null = null,
 ): void {
+    context               = 'string' === typeof context ? createContext(context) : context;
     let elem: HTMLElement = getElement(element);
 
     if (!elem.isConnected) {
@@ -25,8 +42,8 @@ export function provide<ValueType>(
     let triggerConnected: boolean          = false;
 
     if (!elemProviders.has(context as Context<unknown, ValueType>)) {
-        elemProviders.set(context as Context<unknown, ValueType>, new ContextProvider(elem, {
-            context:      context as Context<unknown, ValueType>,
+        elemProviders.set(context, new ContextProvider(elem, {
+            context:      context,
             initialValue: value,
         }));
 

@@ -8,10 +8,8 @@ import {
 }                  from '@stencil/core';
 import { Consume } from '../../';
 import {
-    ErrorLogger,
-    DebugLogger,
-    DEBUG_LOGGER,
-    ERROR_LOGGER,
+    Logger,
+    LOGGER,
 }                  from './logger';
 
 @Component({
@@ -20,58 +18,32 @@ import {
 })
 export class ConsumeExample implements ComponentInterface {
 
-    public static UNPROVIDED: 'ignore' | 'wait' | 'error' = 'ignore';
-
-    public static SUBSCRIBE: boolean = false;
-
     @State()
-    @Consume(ERROR_LOGGER, {
-        unprovided: ConsumeExample.UNPROVIDED,
-        subscribe:  ConsumeExample.SUBSCRIBE,
+    @Consume(LOGGER, {
+        unprovided: (globalThis.window as any).UNPROVIDED_BEHAVIOR || 'ignore',
+        subscribe:  (globalThis.window as any).SUBSCRIBE_BEHAVIOR || false,
     })
-    private _errorLogger!: ErrorLogger;
-
-    @Consume(DEBUG_LOGGER, {
-        unprovided: ConsumeExample.UNPROVIDED,
-        subscribe:  ConsumeExample.SUBSCRIBE,
-    })
-    private _debugLogger!: DebugLogger;
+    private _logger?: Logger;
 
     @Method()
-    public async getDebugLogger(): Promise<DebugLogger> {
-        return this._debugLogger;
-    }
-
-    @Method()
-    public async getErrorLogger(): Promise<ErrorLogger> {
-        return this._errorLogger;
+    public async getLogger(): Promise<Logger | undefined> {
+        return this._logger;
     }
 
     public connectedCallback(): void {
-        try {
-            this._debugLogger.debug('Component connected!');
-        } catch (error: unknown) {
-            this._errorLogger.error('Debug logger not available in connected callback.');
-        }
+        this._logger?.log('Component connected!');
     }
 
     public componentWillLoad(): Promise<void> | void {
-        try {
-            this._debugLogger.debug('Component will load!');
-        } catch (error: unknown) {
-            this._errorLogger.error('Debug logger not available in componentWillLoad.');
-        }
+        this._logger?.log('Component will load!');
     }
 
     private _handleClick = (): void => {
-        try {
-            this._debugLogger.debug('Button clicked');
-        } catch (error: unknown) {
-            this._errorLogger.error('Debug logger not available in button click handler.');
-        }
+        this._logger?.log('Button clicked');
     }
 
     public render(): any {
+        this._logger?.log('Component rendered!');
         return (
             <Host>
                 <button

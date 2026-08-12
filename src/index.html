@@ -10,11 +10,34 @@
    
   </head>
   <body>
-      <script type="module">
-          provideContext('error_logger', { error: (value) => console.log(`[ERR] ${value}`)  });
-      </script>
+      <h2>
+          Web context example
+      </h2>
+      
       <provide-example section="Foo">
           <consume-example></consume-example>
       </provide-example>
+      
+      <div></div>
+      
+      <button id="flush" type="button">Flush</button>
+
+      <div></div>
+      
+      <textarea id="textarea" rows="10" cols="50"></textarea>
+      
+      <h2>
+          App example
+      </h2>
+
+      <app-example></app-example>
+      
+      <script type="text/javascript">
+          document.querySelector('#flush').addEventListener('click', (e) => {
+              document.querySelector('consume-example').getLogger().then((logger) => {
+                  document.querySelector('#textarea').value = logger.emitted.join('\n');
+              });
+          });
+      </script>
   </body>
 </html>

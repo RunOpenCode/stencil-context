@@ -61,11 +61,13 @@ export function Consume<ValueType>(context: Context<unknown, ValueType> | string
         let disconnectedCallback: (() => unknown) | undefined                                   = cmp.disconnectedCallback;
         let componentWillLoad: (() => Promise<void> | void) | undefined                         = cmp.componentWillLoad;
         let deferred: Deferred<void>                                                            = new Deferred<void>();
-        let consumer: WeakMap<ComponentInterface, ContextConsumer<Context<unknown, ValueType>>> = new WeakMap();
+        let consumer: WeakMap<HTMLElement, ContextConsumer<Context<unknown, ValueType>>> = new WeakMap();
 
         cmp.connectedCallback = function (): void {
-            if (!consumer.has(this)) {
-                consumer.set(this, new ContextConsumer(getElement(this), {
+            let element: HTMLElement = getElement(this);
+            
+            if (!consumer.has(element)) {
+                consumer.set(element, new ContextConsumer(element, {
                     context:   'string' === typeof context ? createContext(context) : context,
                     callback:  (value: ValueType): void => {
                         this[property] = value;
@@ -78,7 +80,7 @@ export function Consume<ValueType>(context: Context<unknown, ValueType> | string
                 }));
             }
 
-            consumer.get(this)?.hostConnected();
+            consumer.get(element)?.hostConnected();
 
             if (connectedCallback) {
                 connectedCallback.call(this);
@@ -90,7 +92,7 @@ export function Consume<ValueType>(context: Context<unknown, ValueType> | string
                 disconnectedCallback.call(this);
             }
 
-            consumer.get(this)?.hostDisconnected();
+            consumer.get(getElement(this))?.hostDisconnected();
         }
 
         cmp.componentWillLoad = async function (): Promise<void> {
@@ -102,7 +104,7 @@ export function Consume<ValueType>(context: Context<unknown, ValueType> | string
             await Promise.resolve();
 
             if ('error' === options.unprovided && deferred.pending) {
-                deferred.reject(new Error(`Context "${context}" could not be found.`));
+                deferred.reject(new Error(`Context "${context.toString()}" could not be found.`));
             }
 
             await deferred.promise;

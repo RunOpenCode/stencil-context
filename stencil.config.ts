@@ -1,6 +1,9 @@
 import { Config } from '@stencil/core';
 
+const isProd: boolean = 'production' === process.env.STENCIL_ENV;
+
 export const config: Config = {
+    tsconfig:          isProd ? './tsconfig.prod.json' : './tsconfig.json',
     namespace:         'stencil-context',
     outputTargets:     [
         {
@@ -11,13 +14,11 @@ export const config: Config = {
             type: 'dist-custom-elements',
         },
         {
-            type: 'docs-readme',
-        },
-        {
             type:          'www',
-            serviceWorker: null, // disable service workers
+            serviceWorker: null,
         },
     ],
     globalScript:      'src/global.ts',
-    excludeComponents: ['consume-example', 'provide-example'],
+    excludeComponents: ['consume-example', 'provide-example', 'app-example'],
+    buildDist:         true,
 };

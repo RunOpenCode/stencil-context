@@ -35,8 +35,7 @@ export class ValueNotifier<T> {
 
     public setValue(v: T, force = false): void {
         let update: boolean = force || !Object.is(v, this._value);
-
-        this._value = v;
+        this._value         = v;
 
         if (update) {
             this._updateObservers();

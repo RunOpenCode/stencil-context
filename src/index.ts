@@ -1,11 +1,13 @@
 import {
     Context,
+    ContextProviderEvent,
     ContextRequestEvent,
 } from './context/context';
 
 declare global {
     interface HTMLElementEventMap {
         'context-request': ContextRequestEvent<Context<unknown, unknown>>;
+        'context-provider': ContextProviderEvent<Context<unknown, unknown>>;
     }
 }
 

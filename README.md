@@ -168,6 +168,32 @@ There are several utility functions which you may use to provide context values 
   which is used for reconciliation of pending consume requests when provider is initialized after consumer. It can be
   created globally, or per subtree of the component tree.
 
+## Quirks
+
+There are some quirks in the implementation of context protocol in Stencil when it comes to lazy loading of components
+and when provided value will be available or not. Let's assume that we have two components, `provider-component` and
+`consumer-component`. Provider component provides context which is required by consumer component. In the context of
+Stencil component that wraps Stencil components, as in example below:
+
+```tsx
+export const App: FunctionalComponent = () => {
+    return (
+            <provider-component>
+                <consumer-component />
+            </provider-component>
+    );
+};
+```
+
+consumer component will have provided context value from provider component available from the `connectedCallback()`
+lifecycle hook and so on. However, if you are using Stencil components in a non-Stencil application (plain HTML page),
+even if you are setting global context root, context value will be available in consumer component only from the
+`componentWillLoad()` lifecycle hook and so on.
+
+In that matter, general advice for designing components is to utilize provided context values in `componentWillLoad()`
+lifecycle hook (or any other hooks that comes after it) in order to make your components portable and usable 
+in Stencil and non-Stencil applications.
+
 ## TODO
 
 - [ ] Discussion: Should context root stop propagation of context events? Should that be a flag?

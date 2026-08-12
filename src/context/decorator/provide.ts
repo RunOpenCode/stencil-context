@@ -33,19 +33,25 @@ import { ProvideDecorator } from './types';
  */
 export function Provide<ValueType>(context: Context<unknown, ValueType> | string): ProvideDecorator<ValueType> {
     return ((cmp: ComponentInterface, property: string): void => {
-        let connectedCallback: (() => unknown) | undefined                                      = cmp.connectedCallback;
-        let disconnectedCallback: (() => unknown) | undefined                                   = cmp.disconnectedCallback;
-        let provider: WeakMap<ComponentInterface, ContextProvider<Context<unknown, ValueType>>> = new WeakMap();
-
-        cmp.connectedCallback = function (): void {
-            if (!provider.has(this)) {
-                provider.set(this, new ContextProvider(getElement(this), {
-                    context:      'string' === typeof context ? createContext(context) : context,
-                    initialValue: this[property],
-                }));
+        let connectedCallback: (() => unknown) | undefined                               = cmp.connectedCallback;
+        let disconnectedCallback: (() => unknown) | undefined                            = cmp.disconnectedCallback;
+        let provider: WeakMap<HTMLElement, ContextProvider<Context<unknown, ValueType>>> = new WeakMap();
+        let initialize: (element: HTMLElement, value: ValueType) => void                 = function (element: HTMLElement, value: ValueType): void {
+            if (provider.has(element)) {
+                return;
             }
 
-            provider.get(this)?.hostConnected();
+            provider.set(element, new ContextProvider(element, {
+                context:      'string' === typeof context ? createContext(context) : context,
+                initialValue: value,
+            }));
+        }
+
+        cmp.connectedCallback = function (): void {
+            let element: HTMLElement = getElement(this);
+
+            initialize(element, this[property]);
+            provider.get(element)!.hostConnected();
 
             if (connectedCallback) {
                 connectedCallback.call(this);
@@ -57,8 +63,41 @@ export function Provide<ValueType>(context: Context<unknown, ValueType> | string
                 disconnectedCallback.call(this);
             }
 
-            provider.get(this)?.hostDisconnected();
+            provider.get(getElement(this))!.hostDisconnected();
         }
+
+        // proxy any existing setter for this property and use it to
+        // notify the controller of an updated value
+        let descriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(cmp, property);
+
+        if (undefined === descriptor) {
+            Object.defineProperty(cmp, property, {
+                get(this: ComponentInterface): ValueType | undefined {
+                    return provider.get(getElement(this))?.value;
+                },
+                set(this: ComponentInterface, value: ValueType): void {
+                    let element: HTMLElement = getElement(this);
+                    initialize(element, value);
+                    provider.get(element)!.setValue(value);
+                },
+                configurable: true,
+                enumerable:   true,
+            });
+
+            return;
+        }
+
+        let previous: ((value: ValueType) => void) | undefined = descriptor.set;
+
+        Object.defineProperty(cmp, property, {
+            ...descriptor,
+            set(this: ComponentInterface, value: ValueType): void {
+                let element: HTMLElement = getElement(this);
+                initialize(element, value);
+                provider.get(element)!.setValue(value);
+                previous?.call(this, value);
+            },
+        });
 
     }) as ProvideDecorator<ValueType>;
 }

@@ -43,5 +43,8 @@
         "vitest": "^4.1.10"
     },
     "author": "Nikola Svitlica, a.k.a TheCelavi",
-    "license": "MIT"
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
 }
